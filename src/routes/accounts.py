@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import cast
 
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import BackgroundTasks, APIRouter, Depends, status, HTTPException, Request
 from sqlalchemy import select, delete
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -67,7 +67,10 @@ router = APIRouter()
 )
 async def register_user(
         user_data: UserRegistrationRequestSchema,
+        background_tasks: BackgroundTasks,
+        request: Request,
         db: AsyncSession = Depends(get_db),
+        email_sender = Depends(get_accounts_email_notificator),
 ) -> UserRegistrationResponseSchema:
     """
     Endpoint for user registration.
@@ -78,7 +81,10 @@ async def register_user(
 
     Args:
         user_data (UserRegistrationRequestSchema): The registration details including email and password.
+        background_tasks (BackgroundTasks): An asynchronous background task
+        request (Request): The request object
         db (AsyncSession): The asynchronous database session.
+        email_sender (EmailSenderInterface): An asynchronous EmailSender interface
 
     Returns:
         UserRegistrationResponseSchema: The newly created user's details.
@@ -120,6 +126,16 @@ async def register_user(
 
         await db.commit()
         await db.refresh(new_user)
+
+        activation_link = (str(request.url_for("activate-account"))
+                           + f"?token={activation_token.token}")
+
+        background_tasks.add_task(
+            email_sender.send_activation_email,
+            str(new_user.email),
+            activation_link
+        )
+
     except SQLAlchemyError as e:
         await db.rollback()
         raise HTTPException(
@@ -136,6 +152,7 @@ async def register_user(
     summary="Activate User Account",
     description="Activate a user's account using their email and activation token.",
     status_code=status.HTTP_200_OK,
+    name="activate-account",
     responses={
         400: {
             "description": "Bad Request - The activation token is invalid or expired, "
