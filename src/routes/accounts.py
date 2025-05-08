@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import cast
+from urllib.parse import urljoin
 
 from fastapi import BackgroundTasks, APIRouter, Depends, status, HTTPException, Request
 from sqlalchemy import select, delete
@@ -7,7 +8,12 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
-from config import get_jwt_auth_manager, get_settings, BaseAppSettings, get_accounts_email_notificator
+from config import (
+    get_jwt_auth_manager,
+    get_settings,
+    BaseAppSettings,
+    get_accounts_email_notificator,
+)
 from database import (
     get_db,
     UserModel,
@@ -68,9 +74,9 @@ router = APIRouter()
 async def register_user(
         user_data: UserRegistrationRequestSchema,
         background_tasks: BackgroundTasks,
-        request: Request,
         db: AsyncSession = Depends(get_db),
-        email_sender = Depends(get_accounts_email_notificator),
+        email_sender=Depends(get_accounts_email_notificator),
+        settings: BaseAppSettings = Depends(get_settings)
 ) -> UserRegistrationResponseSchema:
     """
     Endpoint for user registration.
@@ -127,7 +133,8 @@ async def register_user(
         await db.commit()
         await db.refresh(new_user)
 
-        activation_link = (str(request.url_for("activate-account"))
+        base_env_url = settings.FRONTEND_URL
+        activation_link = (urljoin(base_env_url, "/api/v1/activate")
                            + f"?token={activation_token.token}")
 
         background_tasks.add_task(
