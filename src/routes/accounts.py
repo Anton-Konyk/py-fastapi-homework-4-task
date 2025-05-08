@@ -269,7 +269,10 @@ async def activate_account(
 )
 async def request_password_reset_token(
         data: PasswordResetRequestSchema,
+        background_tasks: BackgroundTasks,
         db: AsyncSession = Depends(get_db),
+        email_sender = Depends(get_accounts_email_notificator),
+        settings: BaseAppSettings = Depends(get_settings)
 ) -> MessageResponseSchema:
     """
     Endpoint to request a password reset token.
@@ -298,6 +301,15 @@ async def request_password_reset_token(
     reset_token = PasswordResetTokenModel(user_id=cast(int, user.id))
     db.add(reset_token)
     await db.commit()
+
+    base_env_url = settings.FRONTEND_URL
+    reset_link = urljoin(base_env_url, "/api/v1/reset-password/complete")
+
+    background_tasks.add_task(
+        email_sender.send_password_reset_email,
+        str(user.email),
+        reset_link
+    )
 
     return MessageResponseSchema(
         message="If you are registered, you will receive an email with instructions."
