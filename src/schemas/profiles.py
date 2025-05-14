@@ -58,8 +58,6 @@ class ProfileSchema(BaseModel):
 
     @field_validator("info", mode="before")
     @classmethod
-    def validate_avatar(cls, value):
-        return validate_image(value)
     def validate_info(cls, value):
         try:
             validate_info(value)
