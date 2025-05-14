@@ -99,7 +99,7 @@ async def profile_creation_endpoint(
     contents = await avatar.read()
     try:
         await s3_client.upload_file(filename, contents)
-    except Exception as e:
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to upload avatar. Please try again later."
