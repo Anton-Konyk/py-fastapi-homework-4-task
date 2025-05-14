@@ -19,6 +19,7 @@ from storages import S3StorageInterface
 
 router = APIRouter()
 
+
 @router.post(
     "/users/{user_id}/profile/",
     response_model=ProfileResponseSchema,
@@ -109,9 +110,7 @@ async def profile_creation_endpoint(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to take a public URL for a file "
-                   "stored in the S3-compatible storage. "
-                   "Please try again later."
+            detail=str(e)
         )
 
     user_profile = UserProfileModel(
