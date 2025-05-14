@@ -68,3 +68,31 @@ class ProfileSchema(BaseModel):
             )
         return value
 
+
+async def get_form_data(
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    gender: str = Form(...),
+    date_of_birth: date = Form(...),
+    info: Optional[str] = Form(None),
+    avatar: UploadFile = File(...)
+) -> tuple[ProfileSchema, UploadFile]:
+
+    data = ProfileSchema(
+        first_name=first_name,
+        last_name=last_name,
+        gender=gender,
+        date_of_birth=date_of_birth,
+        info=info,
+    )
+
+    try:
+        validate_image(avatar)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(e)
+        )
+
+    return data, avatar
+
