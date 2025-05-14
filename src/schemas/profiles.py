@@ -96,3 +96,8 @@ async def get_form_data(
 
     return data, avatar
 
+
+class ProfileResponseSchema(ProfileSchema):
+    id: int
+    user_id: int
+    avatar: str
