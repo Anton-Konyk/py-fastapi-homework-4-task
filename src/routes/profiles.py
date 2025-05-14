@@ -106,7 +106,7 @@ async def profile_creation_endpoint(
         )
 
     try:
-        url_avatar = await s3_client.get_file_url(filename)
+        await s3_client.get_file_url(filename)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
