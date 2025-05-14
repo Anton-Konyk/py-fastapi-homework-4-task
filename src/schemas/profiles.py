@@ -2,7 +2,7 @@ from datetime import date
 from typing import Optional
 
 from fastapi import UploadFile, Form, File, HTTPException, status
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, HttpUrl
 
 from validation.profile import (
     validate_name,
@@ -100,4 +100,4 @@ async def get_form_data(
 class ProfileResponseSchema(ProfileSchema):
     id: int
     user_id: int
-    avatar: str
+    avatar: HttpUrl
