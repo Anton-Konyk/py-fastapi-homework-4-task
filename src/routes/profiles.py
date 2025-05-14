@@ -94,7 +94,7 @@ async def profile_creation_endpoint(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="User already has a profile."
         )
-    # filename = f"{user_id}_avatar.jpg"
+
     filename = f"avatars/{user_id}_avatar.jpg"
     contents = await avatar.read()
     try:
@@ -103,14 +103,6 @@ async def profile_creation_endpoint(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to upload avatar. Please try again later."
-        )
-
-    try:
-        await s3_client.get_file_url(filename)
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e)
         )
 
     user_profile = UserProfileModel(
@@ -126,6 +118,14 @@ async def profile_creation_endpoint(
     await db.commit()
     await db.refresh(user_profile)
 
+    try:
+        url_avatar = await s3_client.get_file_url(filename)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
     response_data = ProfileResponseSchema(
         id=user_profile.id,
         user_id=user_profile.user_id,
@@ -134,7 +134,7 @@ async def profile_creation_endpoint(
         gender=user_profile.gender,
         date_of_birth=user_profile.date_of_birth,
         info=user_profile.info,
-        avatar=user_profile.avatar
+        avatar=url_avatar
     )
     return JSONResponse(
         content=jsonable_encoder(response_data),
