@@ -189,7 +189,7 @@ async def activate_account(
         activation_data: UserActivationRequestSchema,
         background_tasks: BackgroundTasks,
         db: AsyncSession = Depends(get_db),
-        email_sender = Depends(get_accounts_email_notificator),
+        email_sender=Depends(get_accounts_email_notificator),
         settings: BaseAppSettings = Depends(get_settings)
 ) -> MessageResponseSchema:
     """
@@ -271,7 +271,7 @@ async def request_password_reset_token(
         data: PasswordResetRequestSchema,
         background_tasks: BackgroundTasks,
         db: AsyncSession = Depends(get_db),
-        email_sender = Depends(get_accounts_email_notificator),
+        email_sender=Depends(get_accounts_email_notificator),
         settings: BaseAppSettings = Depends(get_settings)
 ) -> MessageResponseSchema:
     """
@@ -363,7 +363,7 @@ async def reset_password(
         data: PasswordResetCompleteRequestSchema,
         background_tasks: BackgroundTasks,
         db: AsyncSession = Depends(get_db),
-        email_sender = Depends(get_accounts_email_notificator),
+        email_sender=Depends(get_accounts_email_notificator),
         settings: BaseAppSettings = Depends(get_settings)
 ) -> MessageResponseSchema:
     """
